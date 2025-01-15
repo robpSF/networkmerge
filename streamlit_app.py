@@ -11,8 +11,8 @@ uploaded_file2 = st.file_uploader("Upload the second spreadsheet", type="xlsx")
 
 if uploaded_file1 and uploaded_file2:
     # Load files into dataframes
-    df1 = pd.read_excel(uploaded_file1, header=1)
-    df2 = pd.read_excel(uploaded_file2, header=1)
+    df1 = pd.read_excel(uploaded_file1, header=2)
+    df2 = pd.read_excel(uploaded_file2, header=2)
 
     # Ensure consistent columns in both files
     personas_df1 = set(df1.columns[4:])  # Columns after Persona, Handle, Social Handle, Faction
