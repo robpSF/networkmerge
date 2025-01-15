@@ -1,75 +1,74 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+from io import BytesIO
 
-def merge_networks(file1, file2):
-    # Read the input Excel files
-    df1 = pd.read_excel(file1, header=2)  # Start reading from row 3
-    df2 = pd.read_excel(file2, header=2)
-    st.write(df1)
-    st.write(df2)
+# Streamlit app
+st.title("Social Network Merger")
 
-    # Get the full set of personas from both files
-    all_personas = sorted(set(df1.iloc[:, 0]) | set(df2.iloc[:, 0]))
+st.markdown("Upload two Excel files containing directed social networks to merge them into a single dataframe.")
 
-    # Align columns to ensure both dataframes have the same columns
-    all_columns = sorted(set(df1.columns) | set(df2.columns))
-    df1 = df1.reindex(columns=all_columns, fill_value=np.nan)
-    df2 = df2.reindex(columns=all_columns, fill_value=np.nan)
+# Upload first Excel file
+st.header("Step 1: Upload First Network")
+file1 = st.file_uploader("Upload the first Excel file", type=["xlsx"])
 
+df1 = None
+if file1:
+    df1 = pd.read_excel(file1, header=1)
+    st.write("First network loaded into a DataFrame:")
+    st.dataframe(df1)
 
-    # Initialize the merged DataFrame
-    merged_df = pd.DataFrame(index=all_personas, columns=all_columns)
-    merged_df.iloc[:, 0] = all_personas  # Populate the Persona column
+# Upload second Excel file
+st.header("Step 2: Upload Second Network")
+file2 = st.file_uploader("Upload the second Excel file", type=["xlsx"])
 
-    # Define merge logic
-    def resolve_conflict(val1, val2):
-        if pd.isna(val1):
-            return val2
-        if pd.isna(val2):
-            return val1
-        if val1 == val2:
-            return val1
-        if val1 == 2 or val2 == 2:
-            return 2
-        if {val1, val2} == {1, 3}:
-            return 2
-        return max(val1, val2)  # Fallback
+df2 = None
+if file2:
+    df2 = pd.read_excel(file2, header=1)
+    st.write("Second network loaded into a DataFrame:")
+    st.dataframe(df2)
 
-    # Merge the data
-    for col in all_columns[4:]:  # Skip columns A-D
-        merged_df[col] = [
-            resolve_conflict(df1.at[row, col], df2.at[row, col])
-            for row in all_personas
-        ]
+# Merge the dataframes
+if df1 is not None and df2 is not None:
+    st.header("Step 3: Merge Networks")
 
-    # Fill blank cells with 0 (optional; adjust if necessary)
-    merged_df = merged_df.fillna(0)
-    return merged_df
+    # Merge logic
+    merged_df = pd.merge(
+        df1, df2, how="outer", on=["Persona", "Handle", "Social Handle", "Faction"], suffixes=("_1", "_2")
+    )
 
-def main():
-    st.title("Network Merger")
-    st.write("Upload two Excel files to merge their network diagrams.")
+    for col in df1.columns[4:]:  # Assuming columns 4 onward are the connections
+        if col in df2.columns:
+            merged_col = merged_df[[f"{col}_1", f"{col}_2"]].fillna(0).astype(int)
+            
+            def resolve_connection(row):
+                val1, val2 = row
+                if val1 == 1 and val2 == 3 or val1 == 3 and val2 == 1:
+                    return 2  # They follow each other
+                if val1 == 2 or val2 == 2:
+                    return 2  # Mutual connection
+                return max(val1, val2)  # Otherwise, take the stronger connection
 
-    # File upload inputs
-    file1 = st.file_uploader("Upload the first network file", type="xlsx")
-    file2 = st.file_uploader("Upload the second network file", type="xlsx")
+            merged_df[col] = merged_col.apply(resolve_connection, axis=1)
 
-    if file1 and file2:
-        with st.spinner("Merging networks..."):
-            merged_network = merge_networks(file1, file2)
+    merged_df.drop(columns=[col for col in merged_df.columns if col.endswith("_1") or col.endswith("_2")], inplace=True)
 
-        st.success("Networks merged successfully!")
+    st.write("Merged DataFrame:")
+    st.dataframe(merged_df)
 
-        # Provide the merged file for download
-        st.write("Download the merged network:")
-        merged_file = merged_network.to_excel(index=False, engine='openpyxl')
-        st.download_button(
-            label="Download Merged Network",
-            data=merged_file,
-            file_name="merged_network.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    # Provide download link for the merged DataFrame
+    st.header("Step 4: Download Merged DataFrame")
 
-if __name__ == "__main__":
-    main()
+    @st.cache
+    def convert_df(df):
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Merged Data')
+        return output.getvalue()
+
+    merged_file = convert_df(merged_df)
+    st.download_button(
+        label="Download Merged DataFrame as Excel",
+        data=merged_file,
+        file_name="merged_network.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
