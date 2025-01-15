@@ -30,6 +30,11 @@ if uploaded_file1 and uploaded_file2:
     personas_df2 = df2.iloc[0, 4:].tolist()
     factions_df2 = df2.iloc[1, 4:].tolist()
 
+    st.write(personas_df1)
+    st.write(factions_df1)
+    st.write(personas_df2)
+    st.write(factions_df2)
+
     all_personas = sorted(set(personas_df1 + personas_df2))
 
     # Prepare merged dataframe
