@@ -18,8 +18,14 @@ if uploaded_file1 and uploaded_file2:
     personas_df1 = df1.iloc[0, 4:].tolist()  # Row 1, Columns E onward
     factions_df1 = df1.iloc[1, 4:].tolist()  # Row 2, Columns E onward
 
+    st.write(personas_df1)
+    st.write(factions_df1)
+
     personas_df2 = df2.iloc[0, 4:].tolist()  # Row 1, Columns E onward
     factions_df2 = df2.iloc[1, 4:].tolist()  # Row 2, Columns E onward
+
+    st.write(personas_df2)
+    st.write(factions_df2)
 
     # Extract data rows starting from Row 3
     data_df1 = df1.iloc[2:].reset_index(drop=True)  # Data from Row 3 onward
