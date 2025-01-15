@@ -6,6 +6,8 @@ def merge_networks(file1, file2):
     # Read the input Excel files
     df1 = pd.read_excel(file1, header=2)  # Start reading from row 3
     df2 = pd.read_excel(file2, header=2)
+    st.write(df1)
+    st.write(df2)
 
     # Get the full set of personas from both files
     all_personas = sorted(set(df1.iloc[:, 0]) | set(df2.iloc[:, 0]))
@@ -14,8 +16,7 @@ def merge_networks(file1, file2):
     all_columns = sorted(set(df1.columns) | set(df2.columns))
     df1 = df1.reindex(columns=all_columns, fill_value=np.nan)
     df2 = df2.reindex(columns=all_columns, fill_value=np.nan)
-    st.write(df1)
-    st.write(df2)
+
 
     # Initialize the merged DataFrame
     merged_df = pd.DataFrame(index=all_personas, columns=all_columns)
