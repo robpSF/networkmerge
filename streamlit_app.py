@@ -45,8 +45,9 @@ if uploaded_file1 and uploaded_file2:
                 merged_df = pd.concat([merged_df, pd.DataFrame([row], columns=merged_df.columns)])
             else:
                 for col_idx, col in enumerate(all_personas, start=4):
-                    val1 = df1.iloc[merged_df["Persona"] == persona, col].values[0]
+                    val1 = df1.loc[df1["Persona"] == persona, col].values[0]
                     val2 = row[col_idx]
+
 
                     if pd.isna(val1):
                         merged_value = val2
