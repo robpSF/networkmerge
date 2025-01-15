@@ -31,30 +31,28 @@ if file2:
 if df1 is not None and df2 is not None:
     st.header("Step 3: Merge Networks")
 
-    # Merge logic
-    merged_df = pd.merge(
-        df1, df2, how="outer", on=["Persona", "Handle", "Social Handle", "Faction"], suffixes=("_1", "_2")
-    )
+    # Get list of all personas from both files
+    all_personas = pd.concat([df1["Persona"], df2["Persona"]]).drop_duplicates().tolist()
 
-    for col in df1.columns[4:]:  # Assuming columns 4 onward are the connections
-        if col in df2.columns:
-            merged_col = merged_df[[f"{col}_1", f"{col}_2"]].fillna(0).astype(int)
-            
-            def resolve_connection(row):
-                val1, val2 = row
-                if val1 == 1 and val2 == 3 or val1 == 3 and val2 == 1:
-                    return 2  # They follow each other
-                if val1 == 2 or val2 == 2:
-                    return 2  # Mutual connection
-                return max(val1, val2)  # Otherwise, take the stronger connection
+    # Align both networks to the full list of personas
+    def align_network(df, all_personas):
+        adj_matrix = df.set_index("Persona").iloc[:, 4:].reindex(index=all_personas, columns=all_personas, fill_value=0)
+        return adj_matrix.reset_index()
 
-            merged_df[col] = merged_col.apply(resolve_connection, axis=1)
+    aligned_df1 = align_network(df1, all_personas)
+    aligned_df2 = align_network(df2, all_personas)
 
-    merged_df.drop(columns=[col for col in merged_df.columns if col.endswith("_1") or col.endswith("_2")], inplace=True)
+    # Merge the matrices
+    merged_matrix = aligned_df1.set_index("Persona").copy()
 
-    # Reorder rows to ensure consistent order
-    personas_order = pd.concat([df1["Persona"], df2["Persona"]]).drop_duplicates().tolist()
-    merged_df = merged_df.set_index("Persona").reindex(personas_order).reset_index()
+    for col in aligned_df1.columns[1:]:  # Skip the "Persona" column
+        merged_matrix[col] = aligned_df1[col].combine(aligned_df2[col], lambda x, y: 
+            2 if (x == 1 and y == 3) or (x == 3 and y == 1) else 
+            2 if x == 2 or y == 2 else 
+            max(x, y))
+
+    # Reset index and convert back to DataFrame
+    merged_df = merged_matrix.reset_index()
 
     st.write("Merged DataFrame:")
     st.dataframe(merged_df)
