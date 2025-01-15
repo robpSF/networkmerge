@@ -52,8 +52,9 @@ if df1 is not None and df2 is not None:
 
     merged_df.drop(columns=[col for col in merged_df.columns if col.endswith("_1") or col.endswith("_2")], inplace=True)
 
-    # Reorder rows to match the order in the first file
-    merged_df = merged_df.set_index("Persona").reindex(df1["Persona"]).reset_index()
+    # Reorder rows to ensure consistent order
+    personas_order = pd.concat([df1["Persona"], df2["Persona"]]).drop_duplicates().tolist()
+    merged_df = merged_df.set_index("Persona").reindex(personas_order).reset_index()
 
     st.write("Merged DataFrame:")
     st.dataframe(merged_df)
