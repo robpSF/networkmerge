@@ -31,6 +31,12 @@ if uploaded_file1 and uploaded_file2:
     data_df1 = df1.iloc[2:].reset_index(drop=True)  # Data from Row 3 onward
     data_df2 = df2.iloc[2:].reset_index(drop=True)
 
+    st.write("Columns in data_df1:", data_df1.columns.tolist())
+    st.write("Looking for column:", col)
+    st.write("Columns in data_df2:", data_df2.columns.tolist())
+    st.write("Looking for column:", col)
+
+
     # Add missing personas to each dataset
     all_personas = sorted(set(personas_df1 + personas_df2))
 
