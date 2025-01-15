@@ -16,7 +16,9 @@ if uploaded_file1 and uploaded_file2:
 
     # Validate the format of the spreadsheets
     required_columns = ["Persona", "Handle", "Social Handle", "Faction"]
-    if not all(df1.iloc[1, :4].tolist() == required_columns) or not all(df2.iloc[1, :4].tolist() == required_columns):
+    if df1.iloc[1, :4].tolist() != required_columns or df2.iloc[1, :4].tolist() != required_columns:
+        st.error("Both files must have 'Persona', 'Handle', 'Social Handle', and 'Faction' as headers in row 2, columns A to D.")
+
         st.error("Both files must have 'Persona', 'Handle', 'Social Handle', and 'Faction' as headers in row 2, columns A to D.")
     else:
         # Extract the headers and personas
