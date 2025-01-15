@@ -14,6 +14,8 @@ def merge_networks(file1, file2):
     all_columns = sorted(set(df1.columns) | set(df2.columns))
     df1 = df1.reindex(columns=all_columns, fill_value=np.nan)
     df2 = df2.reindex(columns=all_columns, fill_value=np.nan)
+    st.write(df1)
+    st.write(df2)
 
     # Initialize the merged DataFrame
     merged_df = pd.DataFrame(index=all_personas, columns=all_columns)
