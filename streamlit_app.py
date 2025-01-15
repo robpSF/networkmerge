@@ -21,8 +21,8 @@ if uploaded_file1 and uploaded_file2:
             st.stop()
 
         # Ensure consistent columns in both files
-        personas_df1 = set(df1.columns[4:])  # Columns after Persona, Handle, Social Handle, Faction
-        personas_df2 = set(df2.columns[4:])
+        personas_df1 = set(map(str, df1.columns[4:]))  # Columns after Persona, Handle, Social Handle, Faction
+        personas_df2 = set(map(str, df2.columns[4:]))
         all_personas = sorted(personas_df1.union(personas_df2))
 
         for persona in all_personas:
